@@ -6,6 +6,7 @@ import albumentations
 import pandas as pd
 from albumentations import Normalize
 
+from detection.utils import Xception
 from utils import FolderDataset
 from utils import Runner
 
@@ -38,10 +39,17 @@ def get_dataset(opts):
     import torchvision.transforms as Transforms
     import cv2
     size = 224
+    """ For CrossEfficientNetViT:
+            Transforms.Resize((size, size)),
+            Transforms.ToTensor(),
+            Transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    """
+    # for RFM
     transforms = Transforms.Compose([
-        Transforms.Resize((size, size)),
+        Transforms.Resize((256, 256)),
+        Transforms.CenterCrop((size, size)),
         Transforms.ToTensor(),
-        Transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        Transforms.Normalize([0.5, 0.5, 0.5], [0.25, 0.25, 0.25])
     ])
 
     # DO NOT change FolderDataset
@@ -54,13 +62,15 @@ def get_model_runner(opts, dataset):
     import torch
     from cross_efficient_vit import CrossEfficientViT
 
-    with open('configs/architecture.yaml', 'r') as ymlfile:
-        config = yaml.safe_load(ymlfile)
+    # with open('configs/architecture.yaml', 'r') as ymlfile:
+    #     config = yaml.safe_load(ymlfile)
 
-    model = CrossEfficientViT(config=config)
+    # model = CrossEfficientViT(config=config)
+
     #model.fc = torch.nn.Linear(2048, 1)
+    model = Xception(2)
     model.load_state_dict(
-        torch.load('cross_efficient_vit.pth')
+        torch.load('./pretrained_on_celebdf.pth')
     )
 
     # DO NOT change Runner

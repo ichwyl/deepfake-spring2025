@@ -138,7 +138,7 @@ class Xception(nn.Module):
         self.conv4 = SeparableConv2d(1536, 2048, 3, 1, 1)
         self.bn4 = nn.BatchNorm2d(2048)
 
-        self.fc = nn.Linear(2048, num_classes)
+        self.last_linear = nn.Linear(2048, num_classes)
         # self.fc = nn.Linear(728, num_classes)
 
     def features(self, input):
@@ -179,13 +179,13 @@ class Xception(nn.Module):
 
         x = F.adaptive_avg_pool2d(x, (1, 1))
         x = x.view(x.size(0), -1)
-        x = self.fc(x)
+        x = self.last_linear(x)
         return x
 
     def forward(self, input):
         x = self.features(input)
         x = self.logits(x)
-        return x.sigmoid()
+        return F.softmax(x, dim=-1)[:, 1]
 
 def xception(pretrained=False,**kwargs):
     """
